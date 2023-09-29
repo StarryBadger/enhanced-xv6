@@ -108,3 +108,32 @@ sys_waitx(void)
     return -1;
   return ret;
 }
+
+uint64
+sys_sigalarm(void)
+{
+  uint64 addr;
+  int ticks;
+  struct proc *p = myproc();
+  argint(0,&ticks);
+  argaddr(1,&addr);
+  if (ticks<0 || addr<0)
+  {
+    return -1;
+  }
+  p->ticks=ticks;
+  p->ticky = ticks;
+  p->alarm_on = 1;
+  p->handler=addr;
+  return 0;
+}
+uint64
+sys_sigreturn(void)
+{
+  struct proc *p = myproc();
+  memmove(p->trapframe, p->alarm_tf, PGSIZE);
+  p->ticks = p->ticky;
+  kfree(p->alarm_tf);
+  p->alarm_tf = 0;
+  return p->trapframe->a0;
+}
