@@ -41,8 +41,6 @@ int main()
     char buffer[128];
     buffer[0] = '\0';
     int n, x;
-    int flag = 0;
-
     mySocket = socket(AF_INET, SOCK_STREAM, 0);
     if (mySocket < 0)
     {
@@ -65,10 +63,6 @@ int main()
     while (1)
     {
         printf("Enter 0 for rock, 1 for paper and 2 for scissors\n");
-        if (flag)
-        {
-            getchar();
-        }
         if (scanf("%s", buffer) != 1)
         {
             fprintf(stderr, "[-]Error reading input");
@@ -111,6 +105,9 @@ int main()
         {
             strcpy(buffer, "0");
         }
+        while (getchar() != '\n')
+        {
+        }
         if (send(mySocket, buffer, strlen(buffer), 0) < 0)
         {
             fprintf(stderr, "[-]Send error: %s\n", strerror(errno));
@@ -131,7 +128,6 @@ int main()
         {
             break;
         }
-        flag = 1;
     }
     if (close(mySocket) < 0)
     {

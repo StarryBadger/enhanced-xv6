@@ -180,17 +180,20 @@ int main()
         {
             strcat(A, "You lose!");
             strcat(B, "You win!");
+            printf("Player B won this round!\n");
             scoreB++;
         }
         else if (a == b)
         {
             strcat(A, "It's a draw!");
             strcat(B, "It's a draw!");
+            printf("It's a draw between the players!\n");
         }
         else if ((b == 0 && a == 1) || (b == 1 && a == 2) || (b == 2 && a == 0))
         {
             strcat(A, "You win!");
             strcat(B, "You lose!");
+            printf("Player A won this round!\n");
             scoreA++;
         }
         else
@@ -209,7 +212,6 @@ int main()
         bzero(A, 128);
         b = myatoi(B);
         bzero(B, 128);
-        // printf("a: %d b: %d\n",a,b);
         if (a==0||b==0)
         {
             bzero(A, 128);
@@ -230,6 +232,7 @@ int main()
             sender(client_sockB, client_sockA, B, server_sockB, server_sockA);
         }
     }
+    printf("Game ended! Player A won %d games and player B won %d games.\n", scoreA, scoreB);
     closer(client_sockA, client_sockB, server_sockA, server_sockB);
     return 0;
 }
