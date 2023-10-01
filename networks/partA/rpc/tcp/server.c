@@ -1,4 +1,19 @@
 #include "headers.h"
+void identify(int a)
+{
+    if (a == 0)
+    {
+        printf("rock.\n");
+    }
+    else if (a == 1)
+    {
+        printf("paper.\n");
+    }
+    else
+    {
+        printf("scissors.\n");
+    }
+}
 void closer(int client_sock1, int client_sock2, int server_sock1, int server_sock2)
 {
     int flag = 0;
@@ -180,6 +195,10 @@ int main()
         {
             strcat(A, "You lose!");
             strcat(B, "You win!");
+            printf("Player A played ");
+            identify(a);
+            printf("Player B played ");
+            identify(b);
             printf("Player B won this round!\n");
             scoreB++;
         }
@@ -187,12 +206,20 @@ int main()
         {
             strcat(A, "It's a draw!");
             strcat(B, "It's a draw!");
+            printf("Player A played ");
+            identify(a);
+            printf("Player B played ");
+            identify(b);
             printf("It's a draw between the players!\n");
         }
         else if ((b == 0 && a == 1) || (b == 1 && a == 2) || (b == 2 && a == 0))
         {
             strcat(A, "You win!");
             strcat(B, "You lose!");
+            printf("Player A played ");
+            identify(a);
+            printf("Player B played ");
+            identify(b);
             printf("Player A won this round!\n");
             scoreA++;
         }
@@ -212,7 +239,7 @@ int main()
         bzero(A, 128);
         b = myatoi(B);
         bzero(B, 128);
-        if (a==0||b==0)
+        if (a == 0 || b == 0)
         {
             bzero(A, 128);
             bzero(B, 128);
