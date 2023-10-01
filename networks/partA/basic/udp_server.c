@@ -11,7 +11,7 @@ int main()
   mySocket = socket(AF_INET, SOCK_DGRAM, 0);
   if (mySocket < 0)
   {
-    perror("[-]socket error");
+    fprintf(stderr, "[-]Socket creation error: %s\n", strerror(errno));
     exit(1);
   }
 
@@ -23,7 +23,7 @@ int main()
   n = bind(mySocket, (struct sockaddr *)&server_addr, sizeof(server_addr));
   if (n < 0)
   {
-    perror("[-]bind error");
+    fprintf(stderr, "[-]Bind error: %s\n", strerror(errno));
     exit(1);
   }
 
