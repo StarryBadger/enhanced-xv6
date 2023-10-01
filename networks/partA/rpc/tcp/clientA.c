@@ -1,4 +1,38 @@
 #include "headers.h"
+int myatoi(char *str)
+{
+    int n = 0;
+    for (int i = 0; i < strlen(str); i++)
+    {
+
+        int num = (int)str[i] - 48;
+        if (num >= 0 && num <= 9)
+            n = n * 10 + num;
+        else
+            return -1;
+    }
+    if (n > 2)
+    {
+        return -1;
+    }
+    return n;
+}
+void statYou(int a, char *buffer)
+{
+    strcpy(buffer, "You played ");
+    if (a == 0)
+    {
+        strcat(buffer, "rock.");
+    }
+    else if (a == 1)
+    {
+        strcat(buffer, "paper.");
+    }
+    else
+    {
+        strcat(buffer, "scissors.");
+    }
+}
 int main()
 {
     int mySocket;
