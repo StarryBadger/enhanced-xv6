@@ -46,11 +46,11 @@ int main()
         receivedRegister[i] = 0;
     }
     int receivedCount = 0;
-    int flag[chunkCount];
-    for (int i = 0; i < chunkCount; i++)
-    {
-        flag[i] = 0;
-    }
+    // int flag[chunkCount];
+    // for (int i = 0; i < chunkCount; i++)
+    // {
+    //     flag[i] = 0;
+    // }
     while (receivedCount < chunkCount)
     {
         struct data packet;
@@ -60,11 +60,11 @@ int main()
             exit(1);
         }
         printf("Sequence number: %d Data Packet: %s\n", packet.sequenceNo, packet.data);
-        if ((packet.sequenceNo % 2 == 0 || packet.sequenceNo % 3 != 0) && flag[packet.sequenceNo] < 2)
-        {
-            flag[packet.sequenceNo] += 1;
-            continue;
-        }
+        // if ((packet.sequenceNo % 2 == 0) && flag[packet.sequenceNo] < 10)
+        // {
+        //     flag[packet.sequenceNo] += 1;
+        //     continue;
+        // }
         if (!receivedRegister[packet.sequenceNo])
         {
             receivedRegister[packet.sequenceNo] = 1;
