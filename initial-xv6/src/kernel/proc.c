@@ -520,18 +520,34 @@ void scheduler(void)
       release(&minproc->lock);
     }
 #endif
-    // #ifdef MLFQ
+// #ifdef MLFQ
     for (p = proc; p < &proc[NPROC]; p++)
     {
       if (p->state == RUNNABLE)
       {
         if (!p->isQueuedFlag)
         {
-          
+          enque(p, p->queueIndex);
         }
       }
     }
-    // #endif
+    int run = 0;
+    for (int currQueue = 0; currQueue < QUECOUNT && !run; ++currQueue)
+    {
+      while (fbqs[currQueue].procCount)
+      {
+        p = deque(currQueue);
+        acquire(&p->lock);
+        p->state = RUNNING;
+        c->proc = p;
+        swtch(&c->context, &p->context);
+        c->proc = 0;
+        release(&p->lock);
+        run = 1;
+      }
+    }
+
+// #endif
   }
 }
 

@@ -40,7 +40,7 @@ void enque(struct proc *p, int queueNumber)
     fbqs[queueNumber].procList[fbqs[queueNumber].top] = p;
     ++fbqs[queueNumber].procCount;
 }
-void deque(struct proc *p)
+void remove(struct proc *p)
 {
     int queueNumber = p->queueIndex;
     p->isQueuedFlag = 0;
@@ -58,5 +58,11 @@ void deque(struct proc *p)
             }
         }
     }
+}
+struct proc *deque(int queueNumber)
+{
+    struct proc *p = fbqs[queueNumber].procList[0];
+    remove(p);
+    return p;
 }
 // #endif
