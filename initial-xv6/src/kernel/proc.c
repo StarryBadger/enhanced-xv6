@@ -520,9 +520,18 @@ void scheduler(void)
       release(&minproc->lock);
     }
 #endif
-#ifdef FCFS
-  
-#endif
+    // #ifdef MLFQ
+    for (p = proc; p < &proc[NPROC]; p++)
+    {
+      if (p->state == RUNNABLE)
+      {
+        if (!p->isQueuedFlag)
+        {
+          
+        }
+      }
+    }
+    // #endif
   }
 }
 
