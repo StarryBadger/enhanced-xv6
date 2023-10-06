@@ -492,38 +492,36 @@ void scheduler(void)
     }
 #endif
 #ifdef FCFS
-    struct proc *minproc;
+    struct proc *minproc = 0;
     for (p = proc; p < &proc[NPROC]; p++)
     {
       acquire(&p->lock);
-      if (p->state == RUNNABLE)
+      if (p->state == RUNNABLE && (!minproc || p->ctime < minproc->ctime))
       {
-        minproc = p;
-        release(&p->lock);
-        break;
-      }
-      release(&p->lock);
-    }
-    for (; p < &proc[NPROC]; p++)
-    {
-      acquire(&p->lock);
-      if (p->state == RUNNABLE)
-      {
-        if (p->ctime < minproc->ctime)
+        if (!minproc)
+        {
+          minproc = p;
+        }
+        else if (p->ctime < minproc->ctime)
         {
           release(&minproc->lock);
           minproc = p;
         }
-        else
-        {
-          release(&p->lock);
-        }
       }
       else
-      {
         release(&p->lock);
-      }
     }
+    if (minproc)
+    {
+      minproc->state = RUNNING;
+      c->proc = minproc;
+      swtch(&c->context, &minproc->context);
+      c->proc = 0;
+      release(&minproc->lock);
+    }
+#endif
+#ifdef FCFS
+  
 #endif
   }
 }
