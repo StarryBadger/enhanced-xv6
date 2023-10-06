@@ -453,7 +453,24 @@ int wait(uint64 addr)
     sleep(p, &wait_lock); // DOC: wait-sleep
   }
 }
-
+#ifdef MLFQ
+void aging()
+{
+  for (struct proc *p = proc; p < &proc[NPROC]; p++)
+  {
+    if (p->queueIndex != 0 && ticks - p->enquedAtTick >= AGING_TICKS)
+    {
+      if (p->state == RUNNABLE && p->isQueuedFlag)
+      {
+        remove(p);
+        --p->queueIndex;
+        p->enquedAtTick = ticks;
+        enque(p, p->queueIndex);
+      }
+    }
+  }
+}
+#endif
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -520,7 +537,7 @@ void scheduler(void)
       release(&minproc->lock);
     }
 #endif
-// #ifdef MLFQ
+#ifdef MLFQ
     for (p = proc; p < &proc[NPROC]; p++)
     {
       if (p->state == RUNNABLE)
@@ -547,7 +564,7 @@ void scheduler(void)
       }
     }
 
-// #endif
+#endif
   }
 }
 
