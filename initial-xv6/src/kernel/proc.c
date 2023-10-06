@@ -468,7 +468,7 @@ void scheduler(void)
   {
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
-
+    #ifdef ROUNDROBIN
     for (p = proc; p < &proc[NPROC]; p++)
     {
       acquire(&p->lock);
@@ -487,6 +487,18 @@ void scheduler(void)
       }
       release(&p->lock);
     }
+    #endif
+    #ifdef FCFS
+    uint64 mintime = 0;
+    struct proc *minproc = 0;
+    for(struct proc *p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE && (!minproc || p->creation_time < mintime)) {
+        if(minproc) release(&minproc->lock);
+        minproc = p;
+      }
+      else release(&p->lock);
+    #endif
   }
 }
 
