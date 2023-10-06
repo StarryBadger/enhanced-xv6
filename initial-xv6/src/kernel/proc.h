@@ -127,6 +127,24 @@ struct proc
   int alarm_on;
   int ticky;
 
+  //info for MLFQ
+  // #ifdef MLFQ
+  int isQueuedFlag;            // Set if in queue
+  int queueIndex;              // current queue
+  int enquedAtTick;            // When was process inserted in current queue
+  int tickedFor;               // How long the process ran for in current queue
+  // #endif
 };
 
 extern struct proc proc[NPROC];
+
+// #ifdef MLFQ
+typedef struct queue
+{
+  struct proc* procList[NPROC];
+  int procCount;
+  int top;
+  int capacity;
+  int sliceTime;
+}queue;
+// #endif
