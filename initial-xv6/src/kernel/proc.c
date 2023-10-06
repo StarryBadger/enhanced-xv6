@@ -152,6 +152,9 @@ found:
   p->rtime = 0;
   p->etime = 0;
   p->ctime = ticks;
+  p->queueIndex = 0;
+  p->isQueuedFlag = 0;
+  p->tickedFor = 0;
   return p;
 }
 
@@ -468,7 +471,7 @@ void scheduler(void)
   {
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
-    #ifdef ROUNDROBIN
+#ifdef ROUNDROBIN
     for (p = proc; p < &proc[NPROC]; p++)
     {
       acquire(&p->lock);
@@ -487,18 +490,41 @@ void scheduler(void)
       }
       release(&p->lock);
     }
-    #endif
-    #ifdef FCFS
-    uint64 mintime = 0;
-    struct proc *minproc = 0;
-    for(struct proc *p = proc; p < &proc[NPROC]; p++) {
+#endif
+#ifdef FCFS
+    struct proc *minproc;
+    for (p = proc; p < &proc[NPROC]; p++)
+    {
       acquire(&p->lock);
-      if(p->state == RUNNABLE && (!minproc || p->creation_time < mintime)) {
-        if(minproc) release(&minproc->lock);
+      if (p->state == RUNNABLE)
+      {
         minproc = p;
+        release(&p->lock);
+        break;
       }
-      else release(&p->lock);
-    #endif
+      release(&p->lock);
+    }
+    for (; p < &proc[NPROC]; p++)
+    {
+      acquire(&p->lock);
+      if (p->state == RUNNABLE)
+      {
+        if (p->ctime < minproc->ctime)
+        {
+          release(&minproc->lock);
+          minproc = p;
+        }
+        else
+        {
+          release(&p->lock);
+        }
+      }
+      else
+      {
+        release(&p->lock);
+      }
+    }
+#endif
   }
 }
 
