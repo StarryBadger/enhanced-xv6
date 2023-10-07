@@ -24,7 +24,9 @@ void aging()
   {
     if (p->state == RUNNABLE && p->isQueuedFlag && p->queueIndex != 0 && ((ticks - p->enquedAtTick) >= AGING_TICKS))
     {
-      shiftUp(p);
+      remove(p);
+      p->toUpdate=1;
+      enque(p,p->queueIndex-1);
     }
   }
 }
@@ -95,24 +97,22 @@ void usertrap(void)
           p->trapframe->epc = p->handler;
         }
       }
-    }
     // MLFQ
 #ifdef MLFQ
     aging();
     ++p->tickedFor;
-    if (p->state==RUNNABLE && p->tickedFor >= fbqs[p->queueIndex].sliceTime && p->queueIndex != QUECOUNT - 1)
+    if (p->tickedFor >= fbqs[p->queueIndex].sliceTime)
     {
-      shiftDown(p);
-      yield();
-      usertrapret();
-      return;
-    }
-    else if (p->state==RUNNABLE && p->tickedFor < fbqs[p->queueIndex].sliceTime)
-    { 
-      insetAtBack(p);
+      p->toUpdate=0;
+      if (p->queueIndex < QUECOUNT - 1)
+      {
+        p->toUpdate=1;
+        ++p->queueIndex;
+      }
     }
 #endif
   }
+    }
   else
   {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
@@ -124,7 +124,7 @@ void usertrap(void)
     exit(-1);
 
 // give up the CPU if this is a timer interrupt.
-#ifdef ROUNDROBIN
+#ifndef FCFS
   if (which_dev == 2)
     yield();
 #endif
@@ -198,10 +198,8 @@ void kerneltrap()
   }
 
 // give up the CPU if this is a timer interrupt.
-#ifdef ROUNDROBIN
   if (which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
     yield();
-#endif
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.

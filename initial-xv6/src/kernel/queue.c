@@ -35,22 +35,26 @@ void enque(struct proc *p, int queueNumber)
         return;
     }
     p->isQueuedFlag = 1;
-    p->enquedAtTick = ticks;
-    p->queueIndex = queueNumber;
+    p->queueIndex=queueNumber;
     ++fbqs[queueNumber].top;
-    fbqs[queueNumber].procList[fbqs[queueNumber].top] = p;
     ++fbqs[queueNumber].procCount;
+    fbqs[queueNumber].procList[fbqs[queueNumber].top] = p;
+    if (p->toUpdate)
+    {
+        p->enquedAtTick = ticks;
+        p->tickedFor = 0;
+    }
 }
 void remove(struct proc *p)
 {
+    int flag = 0;
     int queueNumber = p->queueIndex;
     p->isQueuedFlag = 0;
+    p->toUpdate = 1;
     if (isEmpty(queueNumber))
     {
         return;
     }
-    --fbqs[queueNumber].procCount;
-    --fbqs[queueNumber].top;
     for (int i = 0; i <= fbqs[queueNumber].top; i++)
     {
         if (fbqs[queueNumber].procList[i] == p)
@@ -59,8 +63,14 @@ void remove(struct proc *p)
             {
                 fbqs[queueNumber].procList[j] = fbqs[queueNumber].procList[j + 1];
             }
+            flag = 1;
             break;
         }
+    }
+    if (flag)
+    {
+        --fbqs[queueNumber].procCount;
+        --fbqs[queueNumber].top;
     }
 }
 struct proc *deque(int queueNumber)

@@ -156,6 +156,7 @@ found:
   p->queueIndex = 0;
   p->isQueuedFlag = 0;
   p->tickedFor = 0;
+  p->toUpdate = 1;
 #endif
   return p;
 }
@@ -468,6 +469,9 @@ void scheduler(void)
   struct cpu *c = mycpu();
 
   c->proc = 0;
+#ifdef MLFQ
+end:
+#endif
   for (;;)
   {
     // Avoid deadlock by ensuring that devices can interrupt.
@@ -529,10 +533,9 @@ void scheduler(void)
         enque(p, p->queueIndex);
       }
     }
-    int run = 0;
-    for (int currQueue = 0; currQueue < QUECOUNT && !run; currQueue++)
+    for (int currQueue = 0; currQueue < QUECOUNT; currQueue++)
     {
-      while (fbqs[currQueue].procCount!=0 && !run)
+      while (fbqs[currQueue].procCount != 0)
       {
         p = deque(currQueue);
         acquire(&p->lock);
@@ -541,10 +544,9 @@ void scheduler(void)
         swtch(&c->context, &p->context);
         c->proc = 0;
         release(&p->lock);
-        run = 1;
+        goto end;
       }
     }
-
 #endif
   }
 }
@@ -758,6 +760,9 @@ void procdump(void)
     else
       state = "???";
     printf("%d %s %s", p->pid, state, p->name);
+#ifdef MLFQ
+    printf(" Queue: %d", p->queueIndex);
+#endif
     printf("\n");
   }
 }
