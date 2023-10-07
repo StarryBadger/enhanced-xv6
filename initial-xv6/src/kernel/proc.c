@@ -156,7 +156,7 @@ found:
   p->queueIndex = 0;
   p->isQueuedFlag = 0;
   p->tickedFor = 0;
-  p->toUpdate = 1;
+  p->toUpdate = 0;
 #endif
   return p;
 }
@@ -761,7 +761,7 @@ void procdump(void)
       state = "???";
     printf("%d %s %s", p->pid, state, p->name);
 #ifdef MLFQ
-    printf(" Queue: %d", p->queueIndex);
+    printf(" Queue: %d Ticked for: %d", p->queueIndex,p->tickedFor);
 #endif
     printf("\n");
   }

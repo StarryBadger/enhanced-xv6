@@ -50,7 +50,7 @@ void remove(struct proc *p)
     int flag = 0;
     int queueNumber = p->queueIndex;
     p->isQueuedFlag = 0;
-    p->toUpdate = 1;
+    p->toUpdate = 0;
     if (isEmpty(queueNumber))
     {
         return;

@@ -25,8 +25,8 @@ void aging()
     if (p->state == RUNNABLE && p->isQueuedFlag && p->queueIndex != 0 && ((ticks - p->enquedAtTick) >= AGING_TICKS))
     {
       remove(p);
-      p->toUpdate=1;
-      enque(p,p->queueIndex-1);
+      p->toUpdate = 1;
+      enque(p, p->queueIndex - 1);
     }
   }
 }
@@ -97,27 +97,27 @@ void usertrap(void)
           p->trapframe->epc = p->handler;
         }
       }
-    // MLFQ
+      // MLFQ
 #ifdef MLFQ
-    aging();
-    ++p->tickedFor;
-    if (p->tickedFor >= fbqs[p->queueIndex].sliceTime)
-    {
-      p->toUpdate=0;
-      if (p->queueIndex < QUECOUNT - 1)
+      aging();
+      ++p->tickedFor;
+      if (p->tickedFor >= fbqs[p->queueIndex].sliceTime)
       {
-        p->toUpdate=1;
-        ++p->queueIndex;
+        p->toUpdate = 0;
+        if (p->queueIndex < QUECOUNT - 1)
+        {
+          p->toUpdate = 1;
+          ++p->queueIndex;
+        }
         yield();
         usertrapret();
         return;
       }
-    usertrapret();
-    return;
-    }
+      usertrapret();
+      return;
 #endif
-  }
     }
+  }
   else
   {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
@@ -202,7 +202,7 @@ void kerneltrap()
     panic("kerneltrap");
   }
 
-// give up the CPU if this is a timer interrupt.
+  // give up the CPU if this is a timer interrupt.
   if (which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
     yield();
 
