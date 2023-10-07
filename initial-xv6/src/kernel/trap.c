@@ -108,7 +108,12 @@ void usertrap(void)
       {
         p->toUpdate=1;
         ++p->queueIndex;
+        yield();
+        usertrapret();
+        return;
       }
+    usertrapret();
+    return;
     }
 #endif
   }
