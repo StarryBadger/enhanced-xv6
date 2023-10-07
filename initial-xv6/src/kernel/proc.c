@@ -824,6 +824,8 @@ int waitx(uint64 addr, uint *wtime, uint *rtime)
 
 void update_time()
 {
+  printf("%d\n", ticks);
+  procdump();
   struct proc *p;
   for (p = proc; p < &proc[NPROC]; p++)
   {
