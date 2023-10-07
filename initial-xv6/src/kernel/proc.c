@@ -152,9 +152,11 @@ found:
   p->rtime = 0;
   p->etime = 0;
   p->ctime = ticks;
+#ifdef MLFQ
   p->queueIndex = 0;
   p->isQueuedFlag = 0;
   p->tickedFor = 0;
+#endif
   return p;
 }
 
@@ -453,24 +455,6 @@ int wait(uint64 addr)
     sleep(p, &wait_lock); // DOC: wait-sleep
   }
 }
-#ifdef MLFQ
-void aging()
-{
-  for (struct proc *p = proc; p < &proc[NPROC]; p++)
-  {
-    if (p->queueIndex != 0 && ticks - p->enquedAtTick >= AGING_TICKS)
-    {
-      if (p->state == RUNNABLE && p->isQueuedFlag)
-      {
-        remove(p);
-        --p->queueIndex;
-        p->enquedAtTick = ticks;
-        enque(p, p->queueIndex);
-      }
-    }
-  }
-}
-#endif
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -540,18 +524,15 @@ void scheduler(void)
 #ifdef MLFQ
     for (p = proc; p < &proc[NPROC]; p++)
     {
-      if (p->state == RUNNABLE)
+      if (p->state == RUNNABLE && !p->isQueuedFlag)
       {
-        if (!p->isQueuedFlag)
-        {
-          enque(p, p->queueIndex);
-        }
+        enque(p, p->queueIndex);
       }
     }
     int run = 0;
-    for (int currQueue = 0; currQueue < QUECOUNT && !run; ++currQueue)
+    for (int currQueue = 0; currQueue < QUECOUNT && !run; currQueue++)
     {
-      while (fbqs[currQueue].procCount)
+      while (fbqs[currQueue].procCount!=0 && !run)
       {
         p = deque(currQueue);
         acquire(&p->lock);

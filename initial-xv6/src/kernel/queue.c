@@ -5,11 +5,11 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
-// #ifdef MLFQ
+#ifdef MLFQ
 queue fbqs[QUECOUNT];
 void initQueues()
 {
-    for (int i = 0; i < QUECOUNT; ++i)
+    for (int i = 0; i < QUECOUNT; i++)
     {
         fbqs[i].top = -1;
         fbqs[i].capacity = NPROC;
@@ -31,11 +31,12 @@ int isEmpty(int queueNumber)
 void enque(struct proc *p, int queueNumber)
 {
     if (isFull(queueNumber))
+    {
         return;
+    }
     p->isQueuedFlag = 1;
     p->enquedAtTick = ticks;
     p->queueIndex = queueNumber;
-    p->tickedFor = 0;
     ++fbqs[queueNumber].top;
     fbqs[queueNumber].procList[fbqs[queueNumber].top] = p;
     ++fbqs[queueNumber].procCount;
@@ -45,10 +46,12 @@ void remove(struct proc *p)
     int queueNumber = p->queueIndex;
     p->isQueuedFlag = 0;
     if (isEmpty(queueNumber))
+    {
         return;
+    }
     --fbqs[queueNumber].procCount;
     --fbqs[queueNumber].top;
-    for (int i = 0; i <= fbqs[queueNumber].top; ++i)
+    for (int i = 0; i <= fbqs[queueNumber].top; i++)
     {
         if (fbqs[queueNumber].procList[i] == p)
         {
@@ -56,6 +59,7 @@ void remove(struct proc *p)
             {
                 fbqs[queueNumber].procList[j] = fbqs[queueNumber].procList[j + 1];
             }
+            break;
         }
     }
 }
@@ -65,4 +69,31 @@ struct proc *deque(int queueNumber)
     remove(p);
     return p;
 }
-// #endif
+void shiftDown(struct proc *p)
+{
+    int newQueueNumber = p->queueIndex + 1;
+    p->tickedFor = 0;
+    remove(p);
+    enque(p, newQueueNumber);
+}
+void shiftUp(struct proc *p)
+{
+    int newQueueNumber = p->queueIndex - 1;
+    p->tickedFor = 0;
+    remove(p);
+    enque(p, newQueueNumber);
+}
+void insetAtBack(struct proc *p)
+{
+    int newQueueNumber = p->queueIndex;
+    int enqueTemp = p->enquedAtTick;
+    int tickTemp = p->tickedFor;
+    remove(p);
+    if (p->state == RUNNABLE)
+    {
+        enque(p, newQueueNumber);
+        p->tickedFor = tickTemp;
+        p->enquedAtTick = enqueTemp;
+    }
+}
+#endif

@@ -128,17 +128,18 @@ struct proc
   int ticky;
 
   // info for MLFQ
-  //  #ifdef MLFQ
+   #ifdef MLFQ
   int isQueuedFlag; // Set if in queue
   int queueIndex;   // current queue
   int enquedAtTick; // When was process inserted in current queue
   int tickedFor;    // How long the process ran for in current queue
-  // #endif
+  int toUpdate;
+  #endif
 };
 
 extern struct proc proc[NPROC];
 
-// #ifdef MLFQ
+#ifdef MLFQ
 typedef struct queue
 {
   struct proc *procList[NPROC];
@@ -147,12 +148,5 @@ typedef struct queue
   int capacity;
   int sliceTime;
 } queue;
-// #ifdef MLFQ
 extern queue fbqs[QUECOUNT];
-void initQueues();
-int isFull(int queueNumber);
-int isEmpty(int queueNumber);
-void enque(struct proc *p, int queueNumber);
-void remove(struct proc *p);
-struct proc *deque(int queueNumber);
-// #endif
+#endif

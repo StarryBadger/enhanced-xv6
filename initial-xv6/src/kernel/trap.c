@@ -16,6 +16,20 @@ void kernelvec();
 
 extern int devintr();
 
+// aging for MLFQ
+#ifdef MLFQ
+void aging()
+{
+  for (struct proc *p = proc; p < &proc[NPROC]; p++)
+  {
+    if (p->state == RUNNABLE && p->isQueuedFlag && p->queueIndex != 0 && ((ticks - p->enquedAtTick) >= AGING_TICKS))
+    {
+      shiftUp(p);
+    }
+  }
+}
+#endif
+
 void trapinit(void)
 {
   initlock(&tickslock, "time");
@@ -82,6 +96,22 @@ void usertrap(void)
         }
       }
     }
+    // MLFQ
+#ifdef MLFQ
+    aging();
+    ++p->tickedFor;
+    if (p->state==RUNNABLE && p->tickedFor >= fbqs[p->queueIndex].sliceTime && p->queueIndex != QUECOUNT - 1)
+    {
+      shiftDown(p);
+      yield();
+      usertrapret();
+      return;
+    }
+    else if (p->state==RUNNABLE && p->tickedFor < fbqs[p->queueIndex].sliceTime)
+    { 
+      insetAtBack(p);
+    }
+#endif
   }
   else
   {
@@ -93,11 +123,11 @@ void usertrap(void)
   if (killed(p))
     exit(-1);
 
-  // give up the CPU if this is a timer interrupt.
-  #ifdef ROUNDROBIN
+// give up the CPU if this is a timer interrupt.
+#ifdef ROUNDROBIN
   if (which_dev == 2)
     yield();
-  #endif
+#endif
   usertrapret();
 }
 
@@ -167,11 +197,11 @@ void kerneltrap()
     panic("kerneltrap");
   }
 
-  // give up the CPU if this is a timer interrupt.
-  #ifdef ROUNDROBIN
+// give up the CPU if this is a timer interrupt.
+#ifdef ROUNDROBIN
   if (which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
     yield();
-  #endif
+#endif
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.
