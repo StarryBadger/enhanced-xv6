@@ -203,7 +203,4 @@ int isEmpty(int queueNumber);
 void enque(struct proc *p, int queueNumber);
 void remove(struct proc *p);
 struct proc *deque(int queueNumber);
-void shiftDown(struct proc *p);
-void shiftUp(struct proc *p);
-void insetAtBack(struct proc *p);
 #endif

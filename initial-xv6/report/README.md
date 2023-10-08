@@ -20,18 +20,31 @@ The MLFQ (Multi-Level Feedback Queue) scheduling policy employs a priority queue
 - Queue 1: 3 ticks
 - Queue 2: 9 ticks
 - Queue 3: 15 ticks
-As a process runs, it consumes its allocated time-slice. If the process completes its execution within this given time-slice, it  remains in the same queue. However, if the process doesn't finish within its time-slice,the process is lowered to the next lower-priority queue. As some CPU-intensive processes may starve because of this implementation, we perform aging, where, after they exceed the AGE time in their current queue, they are sent to the next higher priority queue.
+As a process runs, it consumes its allocated time-slice. If the process completes its execution within this given time-slice, it  remains in the same queue. However, if the process doesn't finish within its time-slice,the process is lowered to the next lower-priority queue. As some CPU-intensive processes may starve because of this implementation, we perform aging, where, after they exceed the `AGING_TICKS` time (defined in src/kernel/param.h) in their current queue, they are sent to the next higher priority queue.
 #### Implementation
-A data structure named `queue` is introduced in queue.c. It is an array of proc pointers along with a top, a capacity of NPROC (maximum number of processes), procCount (number of processes in the queue currenly) and sliceTime for the given queue. We use an array of size 4 of these queues.
-To facilitate queue management, several fields are added to the proc struct in kernel/proc.h. These include isQueuedFlag (an int to track if a process is in any queue), queueIndex (an int to record the queue in which the process is placed), an int tickedFor (to track time slices spent in each queue) and enqueTime (to note the time of insertion into the current queue).
+A struct named `queue` is introduced in `proc.h`. It consists of an array of proc pointers procList[NPROC]along with a `top`, indicative of the last process enqued. a `capacity` of NPROC (maximum number of processes that can be present at a time), `procCount` (number of processes in the queue currenly) and `sliceTime` for the given queue, as defined above. We create a array of queue f size 4.
+To allow for queue management, more attributes are added to proc struct in src/kernel/proc.h. These include `isQueuedFlag` (to track if a process is in any queue), `queueIndex` (the queue in which the process is present), `tickedFor` (to track ticks for which the process has been in the current queue) and `enquedAt` (time of insertion into the current queue). `toUpdate` is a flag that indicates if the process in a queue, on being enqued after a user interrupt needs its values updated (enquedAt set to current `ticks`, `tickedFor` set to 0; this is done for processes sent to a new queue).
+In allocproc, we initialize the following for  process:
+- p->queueIndex = 0;
+- p->isQueuedFlag = 0;
+- p->tickedFor = 0;
+- p->toUpdate = 0;
+In `queue.c`, we have the following functions:
+- initQueues: Initializes an array of queues (fbqs), setting their properties and slice times based on predefined constants.
 
-enque(), deque() are implemented as standard queue functions, remove() can remove any process p from its given queCount from any index.
+- isFull and isEmpty: Check if a specified queue is full or empty based on the number of processes it contains.
 
-During processing, all processes within the proc array in kernel/trap.c that are not in any queue and are marked as RUNNABLE are added to their respective queues based on their queueIndex value, utilizing the enque function.
+- enque: Adds a process to a specified queue, updating relevant process attributes and timestamps.
 
-Additionally, there is a mechanism for selecting the appropriate queue for execution. The system iterates through the queues starting from the highest priority (queue 0) until it finds a non-empty queue. It then allocates CPU time to processes from that queue.
+- remove: Removes a specific process from its current queue, adjusting the queue's content accordingly.
 
-At each clock interrupt, the aging function, found in kernel/proc.c, is invoked. This function assigns processes to queues with priorities adjusted based on their queueIndex values (primarily for processes not in queue 0). It also checks if a process has consumed its time slice in the current queue and, if so, moves it to a lower-priority queue (primarily for processes not in the highest-priority queue). Furthermore, it scans queues with lower priorities (queues with numbers less than p->queueIndex) and preemptively reschedules the running process if any higher-priority processes are present in those queues. This ensures efficient utilization of CPU resources and responsiveness to higher-priority tasks. When a higher priority process appears in a queue above, before aging in user trap, we yield and return control so that the scheduler can run that process first.
+- deque: Removes and returns the first process from a specified queue.
+
+During processing, in `proc.c`, all processes within the list of processes that are not in any queue and are marked as RUNNABLE are added to their respective queues based on their queueIndex value, utilizing the enque function. 
+
+Additionally, there is a mechanism for selecting the appropriate queue for execution. The system iterates through the queues starting from queue 0 until it finds a non-empty queue with atleast one RUNNABLE process. If any RUNNABLE process goes to `sleep` during its time in the queue, this mechanism deques it. It then allocates CPU time to the first RUNNABLE process found, setting its state to `RUNNING`.
+
+At each clock interrupt, in user trap, the aging function, found in src/kernel/trap.c, is invoked. It moves runnable processes that have been waiting in non-highest-priority queues for `AGING_TICKS` or more time to the higher-priority queue just above, preventing them from being starved and ensuring fair CPU allocation. After this we first check in higher priority queues than the queue of the current process if any RUNNABLE process is present (by aging), in which case we yield and return control so that the scheduler can run that process first by going through the above queues again. If no such process is found, we increment tickedFor by 1, i.e. the process has run for one more tick. Now, we check if the process has used up its time slice (sliceTime). We set toUpdate to 0, only to set it to 1 in case the process is not in the least-priority queue in which we will not decrease its priority. Otherwise we demote the process to the lower-priority queue just after it. If the process has been killed, it exits with an error code (-1) and returns. It then yields the CPU and returns to user mode. If the slicetime has not exceeded however, we do not yield() as we must run the process for sliceTIme ticks. If the process has been killed, it exits with an error code (-1) and returns, otherwise We call usertrapret to return to user mode.
 ## Performance Comparison
 
 `schedulertest` was run for the 3 scheduling algorithms multiple times and an averge of `rtime` and `wtime` were taken.

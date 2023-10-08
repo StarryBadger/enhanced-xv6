@@ -79,31 +79,4 @@ struct proc *deque(int queueNumber)
     remove(p);
     return p;
 }
-void shiftDown(struct proc *p)
-{
-    int newQueueNumber = p->queueIndex + 1;
-    p->tickedFor = 0;
-    remove(p);
-    enque(p, newQueueNumber);
-}
-void shiftUp(struct proc *p)
-{
-    int newQueueNumber = p->queueIndex - 1;
-    p->tickedFor = 0;
-    remove(p);
-    enque(p, newQueueNumber);
-}
-void insetAtBack(struct proc *p)
-{
-    int newQueueNumber = p->queueIndex;
-    int enqueTemp = p->enquedAtTick;
-    int tickTemp = p->tickedFor;
-    remove(p);
-    if (p->state == RUNNABLE)
-    {
-        enque(p, newQueueNumber);
-        p->tickedFor = tickTemp;
-        p->enquedAtTick = enqueTemp;
-    }
-}
 #endif
