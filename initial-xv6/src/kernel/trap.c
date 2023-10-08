@@ -87,13 +87,13 @@ void usertrap(void)
     if (which_dev == 2)
     {
       p->ticks--;
-      if (p->alarm_on)
+      if (p->alarmOnFlag)
       {
         if (p->ticks == 0)
         {
           struct trapframe *tf = kalloc();
           memmove(tf, p->trapframe, PGSIZE);
-          p->alarm_tf = tf;
+          p->trapframeCpy = tf;
           p->trapframe->epc = p->handler;
         }
       }

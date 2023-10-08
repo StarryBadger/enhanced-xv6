@@ -123,8 +123,8 @@ struct proc
   // info for sigalarm
   uint64 handler;
   int ticks;
-  struct trapframe *alarm_tf;
-  int alarm_on;
+  struct trapframe *trapframeCpy;
+  int alarmOnFlag;
   int ticky;
 
   // info for MLFQ

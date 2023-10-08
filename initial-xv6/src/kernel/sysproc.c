@@ -123,7 +123,7 @@ sys_sigalarm(void)
   }
   p->ticks=ticks;
   p->ticky = ticks;
-  p->alarm_on = 1;
+  p->alarmOnFlag = 1;
   p->handler=addr;
   return 0;
 }
@@ -131,9 +131,9 @@ uint64
 sys_sigreturn(void)
 {
   struct proc *p = myproc();
-  memmove(p->trapframe, p->alarm_tf, PGSIZE);
+  memmove(p->trapframe, p->trapframeCpy, PGSIZE);
   p->ticks = p->ticky;
-  kfree(p->alarm_tf);
-  p->alarm_tf = 0;
+  kfree(p->trapframeCpy);
+  p->trapframeCpy = 0;
   return p->trapframe->a0;
 }
