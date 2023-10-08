@@ -100,6 +100,20 @@ void usertrap(void)
       // MLFQ
 #ifdef MLFQ
       aging();
+      for (int currQueue = 0; currQueue < p->queueIndex; currQueue++)
+      {
+        for (int i = 0; i < fbqs[currQueue].procCount; i++)
+        {
+          if (fbqs[currQueue].procList[i]->state== RUNNABLE)
+          {
+            if (killed(p))
+              exit(-1);
+            yield();
+            usertrapret();
+            return;
+          }
+        }
+      }
       ++p->tickedFor;
       if (p->tickedFor >= fbqs[p->queueIndex].sliceTime)
       {
@@ -109,10 +123,14 @@ void usertrap(void)
           p->toUpdate = 1;
           ++p->queueIndex;
         }
+        if (killed(p))
+          exit(-1);
         yield();
         usertrapret();
         return;
       }
+      if (killed(p))
+        exit(-1);
       usertrapret();
       return;
 #endif

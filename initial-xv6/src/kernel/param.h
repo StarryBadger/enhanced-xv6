@@ -11,7 +11,7 @@
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 #define FSSIZE       2000  // size of file system in blocks
 #define MAXPATH      128   // maximum file path name
-#define AGING_TICKS  32    // time after which priority is increased
+#define AGING_TICKS  50    // time after which priority is increased
 #define QUECOUNT     4     // number of queues in MLFQ
 // slice times defined for 4 queues
 #define SLICETTIME0  1

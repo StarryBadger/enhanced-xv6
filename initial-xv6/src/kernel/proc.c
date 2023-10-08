@@ -538,13 +538,16 @@ end:
       while (fbqs[currQueue].procCount != 0)
       {
         p = deque(currQueue);
-        acquire(&p->lock);
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
-        c->proc = 0;
-        release(&p->lock);
-        goto end;
+        if (p->state == RUNNABLE)
+        {
+          acquire(&p->lock);
+          p->state = RUNNING;
+          c->proc = p;
+          swtch(&c->context, &p->context);
+          c->proc = 0;
+          release(&p->lock);
+          goto end;
+        }
       }
     }
 #endif
@@ -761,7 +764,7 @@ void procdump(void)
       state = "???";
     printf("%d %s %s", p->pid, state, p->name);
 #ifdef MLFQ
-    printf(" Queue: %d Ticked for: %d", p->queueIndex,p->tickedFor);
+    printf(" Queue: %d Ticked for: %d", p->queueIndex, p->tickedFor);
 #endif
     printf("\n");
   }
@@ -824,8 +827,8 @@ int waitx(uint64 addr, uint *wtime, uint *rtime)
 
 void update_time()
 {
-  printf("%d\n", ticks);
-  procdump();
+  // printf("%d\n", ticks);
+  // procdump();
   struct proc *p;
   for (p = proc; p < &proc[NPROC]; p++)
   {
