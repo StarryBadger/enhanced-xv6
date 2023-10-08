@@ -3,15 +3,35 @@
 This part of the project aims at implementing TCP-like functionality using UDP sockets. However, there are many implementation differences between the two:
 ### Data Sequencing:
 #### UDP-based Implementation
-UDP has no built-in sequencing mechanism and has been explicitly handled. In my implementation, data sequencing is achieved through the assignment of sequence numbers to packets by the sender. The nth packet has it's sequence number simply as n-1, with the first packet having the sequence number zero. The sequence number has no information about the number of bytes being transmitted in the current packet or bytes that have already been transmitted prior to this.
+UDP has no built-in sequencing mechanism and has been explicitly handled. In my implementation, data sequencing is achieved through the assignment of sequence numbers to packets by the sender. 
+- The nth packet has it's sequence number simply as n-1. 
+- The first packet always has the sequence number zero. This is because only one sender is present.
+- The sequence number has no information about the number of bytes being transmitted in the current packet or bytes that have already been transmitted prior to this.
 
 This causes us to settle on a predetermined agreed-upon number of bytes to be sent and received by the server and the client in each packet. This value does not change during run-time and thus flow control and congestion control is not performed.
 #### Actual TCP
-TCP, on the other hand, provides automatic and built-in data sequencing. In the TCP header for each packet, a sequence number is assigned to it which ensures that data is delivered to the receiver in the correct order. This sequence numnber tracks the number of bytes that are being sent and is thus more complicated than our implementation. Initial sequence numbers are randomly chosen by the senders. After this, each sequence number is the sum of the previous sequence number with the number of bytes transmitted through the previous packet.
+TCP, on the other hand, provides automatic and built-in data sequencing. In the TCP header for each packet, a sequence number is assigned to it which ensures that data is delivered to the receiver in the correct order. This sequence numnber tracks the number of bytes that are being sent and is thus more complicated than our implementation. 
+- The first sequence number is randomly chosen by the senders. This is to distinguish between multiple clients and servers sending the data.
+- After this, each sequence number is the sum of the previous sequence number with the number of bytes transmitted through the previous packet.
+- Thus, the sequence number carries information about the number of bytes transmitted.
 
 It thus allows the sender to modulate the number of bytes transmitted to the sender based on information it receives from its receive window (number of bytes the receiver can accept), thus allowing flow control.
 
 ### Retransmission:
+
+##### The key difference between my implementaion and TCP is the retransmission timeout interval in TCP. In TCP RTO is calculated using the following:
+- EstimatedRTT = (1- $\alpha$) x EstimatedRTT + $\alpha$ x SampleRTT
+- DevRTT = (1-b) x DevRTT + $\beta$ x $\beta$ x | EstimatedRTT-SampleRTT | 
+- TimeoutInterval = EstimatedRTT + 4 x DevRTT
+##### where,
+- SampleRTT: Time measured from segment transmission until ACK receipt
+- EstimatedRTT: Estimated weighted moving average (EWMA) α = 0.25
+- DevRTT: EWMA of sampleRTT deviation from EstimatedRTT β = 0.75
+- TimeoutInterval (RTO): Estimated Time + some kind of safety margin
+
+##### In my implementation the sender does not wait to retransmit the data. Unlike actual TCP, it retransmits a packet only after all packets that are serially after it have been transmitted atleast once. Following this, the retransmission of all unacknowledged packets are attempted for 1000 $\mu$ s at a time in a roundrobin fashion until the ACK for all packets is received.
+
+#### Detailed description of both protocols:
 #### UDP-based Implementation
 In my implementation, retransmission of lost or unacknowledged packets is handled using the following strategy: The sender maintains an array for each packet indicative of whether the acknowledgement for it has been received or not. Initially, for each communication, it is initialized to 0 for all packets. The sender uses a non-blocking recvfrom() to wait for 1000 microseconds for ACK to be received after sending the packet (say, the i<sub>th</sub> packet). The acknowledgement for a packet is simply the sequence number corresponding to it. If it is received in time, the i<sub>th</sub> index of the acknowledgement array is set to 1.
 
