@@ -24,5 +24,4 @@ typedef struct data
     int sequenceNo;
     char data[CHUNK_SIZE+1];
 } data;
-
 #endif
