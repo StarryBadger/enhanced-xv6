@@ -83,7 +83,7 @@ Results would vary depending on having more I/O bound processes and processes of
 
 ## MLFQ Scheduling Analysis
 ### Timeline plot between queue number on the Y-axis and ticks elapsed on the X-axis for 5 proccesses
-![Alt text](plot.png)
+![!\[Alt text\](plot.png)](initial-xv6/report/plot.png)
 ##### Note: The CPU process loop was run for 1.8e9 instead of 1e9 to properly display scheduling
 In the MLFQ scheduling graph, processes are represented as they move between different priority queues. As processes enter low-priority queues, they rise upwards on the y-axis of the graph, indicating their transition to lower priority. This happens when a process has consumed its entire time slice in the current queue. Conversely, processes descend on the y-axis when they enter higher-priority queues, which occurs after they exceed the AGING_TICKS time in their current queue, as determined by the aging function. This representation captures the scheduling behavior of processes as they compete for CPU time across multiple priority levels in the MLFQ scheduler.
 
