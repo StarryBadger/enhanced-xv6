@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-file = open('new2.txt', 'r')
+file = open('final.txt', 'r')
 fileLines = file.readlines()
 proclist = [4, 5, 6, 7, 8]
 
@@ -22,4 +22,4 @@ plt.text(0.01, 0.95, "Aging time: 50 ticks", transform=plt.gca().transAxes,
 
 plt.gcf().set_size_inches(22, 15)
 plt.legend(loc='lower right', fontsize=20)
-plt.savefig("plot.png")
+plt.savefig("finalplot.png")
