@@ -100,11 +100,18 @@ void usertrap(void)
       // MLFQ
 #ifdef MLFQ
       aging();
+      for (struct proc* q= proc; q < &proc[NPROC]; q++)
+      {
+        if (q->state == RUNNABLE && !q->isQueuedFlag)
+        {
+          enque(q, q->queueIndex);
+        }
+      }
       for (int currQueue = 0; currQueue < p->queueIndex; currQueue++)
       {
         for (int i = 0; i < fbqs[currQueue].procCount; i++)
         {
-          if (fbqs[currQueue].procList[i]->state== RUNNABLE)
+          if (fbqs[currQueue].procList[i]->state == RUNNABLE)
           {
             if (killed(p))
               exit(-1);

@@ -54,7 +54,7 @@ At each clock interrupt, in user trap, the aging function, found in src/kernel/t
 | :-------------------------------: | :--------------: | :---------------: |
 |          Round Robin (RR)         |        10        |        142        |
 |   First Come First Serve (FCFS)   |        10        |        120        |
-| Multi-Level Feedback Queue (MLFQ) |        10        |        134        |
+| Multi-Level Feedback Queue (MLFQ) |        10        |        138        |
 
 The average run time for all the scheduling policies comes around to be the same as the same number of CPU-bound processes are being executed, thus, the ticks required to execute these processes also remains the same.
 
@@ -65,7 +65,9 @@ The average wait time however, appears to be in the increasing order of
 
 This can be explained by the fact that during FCFS, the yield() function is never called in usertrap(). Thus we never yield the CPU except for kernel traps. As all the processes are of the same length (forked from the same schedulertest process, running in a loop from 0 to 1e9 ), FCFS has the least waiting time for equal size processes because of the overhead that arises because of context-switching is minimized by not yielding control to run another process. However this policy does not take into account, fairness. Besides equally long processes, none of the processes perform I/O, in which case MLFQ would have been faster as it switches to other RUNNABLE processes when the currenly RUNNING process starts I/O.
 
-MLFQ ranks the second, over RR, as it does not call yield() for each tick like Round-Robin does, but only after the slice-time of the queue the currently running process is in. So, enen though the slice-time is initially 1 and yield() is called on userinterrupt for each tick, for a process 3rd priority queue, yield() only occurs after the process runs for 9 ticks, thus reducing context switch overhead compared to RR, but not as much as FCFS.
+MLFQ ranks the second, over RR, as it does not call yield() for each tick like Round-Robin does, but only after the slice-time of the queue the currently running process is in. So, enen though the slice-time is initially 1 and yield() is called on userinterrupt for each tick, for a process 3rd priority queue, yield() only occurs after the process runs for 9 ticks, thus reducing context switch overhead compared to RR, but not as much as FCFS. 
+
+MLFQ has one factor that slows it down even though the greater number of yield() calls in RR still dominate over it. It is the higher amount of processing the MLFQ policy requires to decide which process to run next. This increases the interrupt overhead. If this decision making could be optimized, a decrease wtime of the process will be observed.
 
 Results would vary depending on having more I/O bound processes and processes of different lengths, where MLFQ, and even RR may have been more efficient than FCFS.
 
